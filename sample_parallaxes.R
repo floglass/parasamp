@@ -38,7 +38,11 @@
 ##                                +-v------+                      +----v---+
 ##                                |Distance|                      |Distance|
 ##                                +--------+                      +--------+
+##
+## code by Florian Glass, 2016
 
+library(ggplot2)
+library(reshape2)
 
 ### Model parameters
 ### General
@@ -117,7 +121,7 @@ final.dist.pos.parallaxes <- mean(distance.from.positive.parallax)
 final.sd.dist.pos.parallaxes <- sd(distance.from.positive.parallax)/sqrt(iterations)
 average.negative.parallaxes <- mean(negative.parallaxes.number)  # per sample
 
-### Print results (True.distance, average.distance, etc)
+### Print results (True.distance, average.distance, distance.from.parallaxes)
 cat("True Distance:", true.distance, "\n")
 cat("Average positive distance:", final.average.distance, "+/-",
     final.sd.average.distance, "\n")
@@ -130,7 +134,23 @@ cat("Average negative parallaxes per sample:",
 cat("----------\n")
 
 ### Plot histograms
-## average.parallax.hist <- hist(distance.from.average.parallax, main="Measured distance", breaks=100, col=rgb(1,0,0,1/4), xlim=c(as.integer(min(c(min(distance.from.positive.parallax),min(distance.from.average.parallax)))), as.integer(max(c(max(distance.from.positive.parallax),max(distance.from.average.parallax))))))
-## positive.parallax.hist <- hist(distance.from.positive.parallax, breaks=100, col=rgb(0,0,1,1/4), add=TRUE)
-## legend("topright", c("from average parallaxes", "from positive parallaxes"), fill=c("red", "blue"))
-### axis(side=2, at=seq(), labels=seq(), 10))
+### ggplot2 only works with data.frame --> has to create some with library reshape2 melt function
+### R is really not practical for plotting. --> better use SM or python.
+# avg.paral <- melt(distance.from.average.parallax)  # create data.frame from vector
+# pos.paral <- melt(distance.from.positive.parallax)
+# hist.data <- cbind(avg.paral, pos.paral)  # combine two data.frames column-wise
+# colnames(hist.data)[1] <- "average parallaxes"  # rename columns
+# colnames(hist.data)[2] <- "positive parallaxes"
+# mean.average.parallaxes <- mean(hist.data$`average parallaxes`)
+# mean.positive.parallaxes <- mean(hist.data$`positive parallaxes`)
+# p <- ggplot(data=hist.data)+
+#   geom_histogram(aes(x=hist.data$`average parallaxes`),color="black", fill="blue", alpha=0.2)+
+#   geom_histogram(aes(x=hist.data$`positive parallaxes`),color="black", fill="red", alpha=0.2)+
+#   geom_vline(aes(xintercept=mean.average.parallaxes),color="blue", linetype="dashed", size=1)+
+#   geom_vline(aes(xintercept=mean.positive.parallaxes),color="red", linetype="dashed", size=1)+
+#   xlab("distance")+
+#   geom_text(aes(mean.average.parallaxes,0),label = round(mean.average.parallaxes,2), vjust = 1.5, hjust=-0.1, colour="blue")+
+#   geom_text(aes(mean.positive.parallaxes,0), label=round(mean.positive.parallaxes,2), vjust=1.5, hjust=1.1, colour="red")+
+#   #scale_colour_manual(values =c('blue','red'), labels = c('average parallaxes','positive parallaxes'))+
+#   #guides(color=guide_legend("Computed distances from:"))
+# print(p)
