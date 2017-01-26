@@ -133,14 +133,16 @@ cat("Average negative parallaxes per sample:",
             average.negative.parallaxes, "\n")
 cat("----------\n")
 
+avg.paral <- melt(distance.from.average.parallax)  # create data.frame from vector
+pos.paral <- melt(distance.from.positive.parallax)
+avg.dist <- melt(average.distance)
+hist.data <- cbind(avg.paral, pos.paral, avg.dist)  # combine two data.frames column-wise
+names(hist.data) <- c("dist from average parallaxes", "dist from positive parallaxes", "average distances")
+write.csv(hist.data, file="distances.csv", row.names=FALSE)
+
 ### Plot histograms
 ### ggplot2 only works with data.frame --> has to create some with library reshape2 melt function
 ### R is really not practical for plotting. --> better use SM or python.
-# avg.paral <- melt(distance.from.average.parallax)  # create data.frame from vector
-# pos.paral <- melt(distance.from.positive.parallax)
-# hist.data <- cbind(avg.paral, pos.paral)  # combine two data.frames column-wise
-# colnames(hist.data)[1] <- "average parallaxes"  # rename columns
-# colnames(hist.data)[2] <- "positive parallaxes"
 # mean.average.parallaxes <- mean(hist.data$`average parallaxes`)
 # mean.positive.parallaxes <- mean(hist.data$`positive parallaxes`)
 # p <- ggplot(data=hist.data)+
