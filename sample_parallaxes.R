@@ -133,12 +133,17 @@ cat("Average negative parallaxes per sample:",
             average.negative.parallaxes, "\n")
 cat("----------\n")
 
+### Save data
 avg.paral <- melt(distance.from.average.parallax)  # create data.frame from vector
 pos.paral <- melt(distance.from.positive.parallax)
 avg.dist <- melt(average.distance)
 hist.data <- cbind(avg.paral, pos.paral, avg.dist)  # combine two data.frames column-wise
 names(hist.data) <- c("dist from average parallaxes", "dist from positive parallaxes", "average distances")
 write.csv(hist.data, file="distances.csv", row.names=FALSE)
+
+### Save averages
+averages <- c(true.distance, final.average.distance, final.dist.parallaxes, final.dist.pos.parallaxes)
+write(averages, file="averages.txt")
 
 ### Plot histograms
 ### ggplot2 only works with data.frame --> has to create some with library reshape2 melt function
