@@ -12,7 +12,8 @@ library(grid)
 theme_set(theme_bw(14))  # define the "black and white" ggplot2 theme with font.size of 14 for the whole script
 
 ### parameters and data loading
-iterations <- 2
+iterations <- 1
+TGAS.offset <- 0.
 DeRidder.data <- read.csv(file="KeplerGiants_inputForGeert2.txt", header=TRUE, sep=" ")
 TGAS.parallaxes <- DeRidder.data[2]
 TGAS.errors <- DeRidder.data[3]
@@ -56,13 +57,22 @@ names(data.frame.TGAS.noised) <- row.number
 astero.synth <- data.frame(t(data.frame.synthetic.noised))
 TGAS.synth <- data.frame(t(data.frame.TGAS.noised))
 
+### Add offset to TGAS.synth. Default is 0, ±0.3 is suggested too.
+TGAS.synth <- TGAS.synth + TGAS.offset
+
+### Fix column names if iterations==1
+if (iterations==1){
+  names(astero.synth) <- "X1"
+  names(TGAS.synth) <- "X1"
+}
+
 #################################################
 ### Error-in-variables for all the iterations ###
 #################################################
 ### leiv.function buffers the data handling. We have a data.frame (synthetic data), but need to get
 ### subsets of different sizes from that (positive data) which data.frame doesn't accept.
 leiv.function <- function(astero, TGAS){
-  fit <- leiv(astero~TGAS, abs.tol=5e-6)
+  fit <- leiv(astero~TGAS, abs.tol=1e-6)
   return(c(fit@slope, fit@intercept))
 }
 
@@ -116,13 +126,14 @@ p2 <-ggplot(X1, aes(x=X1[[1]], y=X1[[2]])) +
   geom_abline(intercept=average.intercept, slope=average.slope, colour='blue', size=1) +  # averaged regression of the whole iteration dataset
   geom_abline(intercept=average.pos.intercept, slope=average.pos.slope, colour='red', size=1) +
   geom_vline(xintercept=0, colour='black', linetype='dashed') + 
-  xlab("synthetic TGAS parallaxes [mas]") + ylab("synthetic seismic parallaxes [mas]") + ggtitle("Synthetic data (showing one sample)") + 
+  xlab("synthetic TGAS parallaxes [mas]") + ylab("synthetic seismic parallaxes [mas]") + ggtitle(sprintf("Synthetic data (showing one sample). TGAS offset: %s mas",TGAS.offset)) + 
   theme(plot.title=element_text(hjust=0.5)) +
   scale_colour_manual(name = '', values=c("Current sample", "All samples", "Positive samples")) +
   annotation_custom(grob) + annotation_custom(grob2) + annotation_custom(grob3)
 print(p2)
 
 ### Terminal output
+cat('TGAS offset:',TGAS.offset,'mas\n')
 cat('Error-in-variable on sample 1:\nslope:', fit.results[[1]][[1]], 'intercept:', fit.results[[2]][[1]],'\n')
 cat('Error-in-variable averaged on whole sample:\nslope:', average.slope,'±',error.slope,'intercept:',average.intercept,'±',error.intercept,'\n')
 cat('Error-in-variable averaged on positive samples:\nslope:', average.pos.slope,'±',error.pos.slope,'intercept:',average.pos.intercept,'±',error.pos.intercept,'\n')
