@@ -1,11 +1,5 @@
 #! usr/bin/env Rscript
 
-#############
-### TO DO ###
-#############
-### 3)Plot histogram of samples
-#############
-
 ### Run with: Rscript sample_parallaxes.R from terminal
 
 ### Create synthetic data of a cluster at distance "true.distance", with a
@@ -144,20 +138,3 @@ write.csv(hist.data, file="distances.csv", row.names=FALSE)
 ### Save averages
 averages <- c(true.distance, final.average.distance, final.dist.parallaxes, final.dist.pos.parallaxes)
 write(averages, file="averages.txt")
-
-### Plot histograms
-### ggplot2 only works with data.frame --> has to create some with library reshape2 melt function
-### R is really not practical for plotting. --> better use SM or python.
-# mean.average.parallaxes <- mean(hist.data$`average parallaxes`)
-# mean.positive.parallaxes <- mean(hist.data$`positive parallaxes`)
-# p <- ggplot(data=hist.data)+
-#   geom_histogram(aes(x=hist.data$`average parallaxes`),color="black", fill="blue", alpha=0.2)+
-#   geom_histogram(aes(x=hist.data$`positive parallaxes`),color="black", fill="red", alpha=0.2)+
-#   geom_vline(aes(xintercept=mean.average.parallaxes),color="blue", linetype="dashed", size=1)+
-#   geom_vline(aes(xintercept=mean.positive.parallaxes),color="red", linetype="dashed", size=1)+
-#   xlab("distance")+
-#   geom_text(aes(mean.average.parallaxes,0),label = round(mean.average.parallaxes,2), vjust = 1.5, hjust=-0.1, colour="blue")+
-#   geom_text(aes(mean.positive.parallaxes,0), label=round(mean.positive.parallaxes,2), vjust=1.5, hjust=1.1, colour="red")+
-#   #scale_colour_manual(values =c('blue','red'), labels = c('average parallaxes','positive parallaxes'))+
-#   #guides(color=guide_legend("Computed distances from:"))
-# print(p)
