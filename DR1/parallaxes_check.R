@@ -9,13 +9,36 @@
 ### DONE Change synthetic data from asteroseismic to TGAS (astero have smaller errors, so it should be the basis)
 ### DONE Add noise to the *distance*, instead of the parallax for asteroseismic parallaxes
 ### (Error-in-variables on Distances vs TGAS parallaxes)
-### Histogram of slopes and intercepts of regression model
+### DONE Histogram of slopes and intercepts of regression model
 
 library(leiv)  # computes the slope and intercept of a dataset using error-in-variables
 library(ggplot2)  # plotting package
 library(grid)  # annotation on plot (grobTree function)
 
 theme_set(theme_bw(14))  # define the "black and white" ggplot2 theme with font.size of 14 for the whole script
+
+### Function definition:
+leiv.function <- function(astero, TGAS){
+  fit <- leiv(astero~TGAS, abs.tol=1e-6)  # linear fit: estimate the slope and intercept of a bivariate linear relationship when both variables are observed with error.
+  return(c(fit@slope, fit@intercept))
+}
+
+get.csv.data <- function(){
+  new.data <- read.csv(file="synthetic_data.csv", sep=',', header=TRUE)
+  fit <- leiv.function(new.data$astero.synth, new.data$TGAS.synth)
+  
+  grob <- grobTree(textGrob(sprintf('slope: %s, intercept: %s',round(fit[1],3), round(fit[2],3)), x=0.01,  y=0.98, hjust=0,
+                            gp=gpar(col="red", fontsize=13)))
+  
+  plot1 <- ggplot(new.data, aes(x=new.data$TGAS.synth, y=new.data$astero.synth)) +
+    geom_point() + 
+    geom_abline(slope=1, intercept=0, colour='gray', size=1) +
+    geom_abline(slope=fit[1], intercept=fit[2], colour='red', size=1) +
+    xlab("synthetic TGAS parallaxes [mas]") + ylab("synthetic seismic parallaxes [mas]") +
+    annotation_custom(grob)
+  print(plot1)
+  return(c(new.data, fit))
+}
 
 ### parameters and data loading
 iterations <- 1
@@ -44,9 +67,10 @@ p <-ggplot(Odata, aes(x=Odata[[1]], y=Odata[[2]])) +
   geom_errorbar(aes(ymin = Odata[[2]]-seismic.errors, ymax = Odata[[2]]+seismic.errors), col='gray') + 
   geom_errorbarh(aes(xmin = Odata[[1]]-TGAS.errors, xmax = Odata[[1]]+TGAS.errors), col='gray') + geom_point() + 
   xlab("TGAS parallaxes [mas]") + ylab("seismic parallaxes [mas]") + ggtitle("Original data") + theme(plot.title=element_text(hjust=0.5)) +
-  geom_abline(slope=Original.fit[[1]], intercept=Original.fit[[2]], colour='blue')
+  geom_abline(slope=Original.fit[[1]], intercept=Original.fit[[2]], colour='blue') +
+  geom_abline(slope = 1, intercept = 0, colour = 'gray', linetype='dashed', size = 1)
 print(p)
-cat('test data:\nslope:',Original.fit[1],'intercept:', Original.fit[2],'\n')
+cat('Original data:\nslope:',Original.fit[1],'intercept:', Original.fit[2],'\n')
 #####################
 
 ### Creation of synthetic data:
@@ -85,10 +109,6 @@ if (iterations==1){
 #################################################
 ### leiv.function buffers the data handling. We have a data.frame (synthetic data), but need to get
 ### subsets of different sizes from that (positive data) which data.frame doesn't accept.
-leiv.function <- function(astero, TGAS){
-  fit <- leiv(astero~TGAS, abs.tol=1e-6)  # linear fit
-  return(c(fit@slope, fit@intercept))
-}
 
 fit.results <- data.frame()
 fit.pos.results <- data.frame()
@@ -155,6 +175,7 @@ p2 <-ggplot(X1, aes(x=X1[[1]], y=X1[[2]])) +
   geom_abline(intercept=fit.results[[2]][[1]], slope=fit.results[[1]][[1]], colour='black', linetype='dashed', size=1) +
   geom_abline(intercept=average.intercept, slope=average.slope, colour='blue', size=1) +  # averaged regression of the whole iteration dataset
   geom_abline(intercept=average.pos.intercept, slope=average.pos.slope, colour='red', size=1) +
+  geom_abline(slope = 1, intercept = 0, colour = 'gray', linetype='dashed', size = 1) +
   geom_vline(xintercept=0, colour='black', linetype='dashed') + 
   xlab("synthetic TGAS parallaxes [mas]") + ylab("synthetic seismic parallaxes [mas]") + ggtitle(sprintf("Synthetic data (showing 1 sample of %s). TGAS offset: %s mas",iterations,TGAS.offset)) + 
   theme(plot.title=element_text(hjust=0.5)) +
