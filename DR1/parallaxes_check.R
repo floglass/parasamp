@@ -23,21 +23,35 @@ leiv.function <- function(astero, TGAS){
   return(c(fit@slope, fit@intercept))
 }
 
+
+select.positive.data <- function(TGAS, astero){
+  TGAS.positive <- TGAS[which(TGAS > 0.)]
+  astero.positive <- astero[which(TGAS > 0.)]
+  return(data.frame(TGAS.positive, astero.positive))
+}
+
+
 get.csv.data <- function(){
   new.data <- read.csv(file="synthetic_data.csv", sep=',', header=TRUE)
   fit <- leiv.function(new.data$astero.synth, new.data$TGAS.synth)
   
-  grob <- grobTree(textGrob(sprintf('slope: %s, intercept: %s',round(fit[1],3), round(fit[2],3)), x=0.01,  y=0.98, hjust=0,
+  positive.data <- select.positive.data(new.data[[2]], new.data[[4]])
+  fit2 <- leiv.function(positive.data$astero.positive, positive.data$TGAS.positive)
+  
+  grob <- grobTree(textGrob(sprintf('Whole sample, slope: %s, intercept: %s',round(fit[1],3), round(fit[2],3)), x=0.01,  y=0.98, hjust=0,
                             gp=gpar(col="red", fontsize=13)))
+  grob2 <- grobTree(textGrob(sprintf("Positive elements, slope: %s, intercept: %s", round(fit2[1],3), round(fit2[2],3)), x=0.01, y=0.95, hjust=0,
+                             gp=gpar(col="blue", fontsize=13)))
   
   plot1 <- ggplot(new.data, aes(x=new.data$TGAS.synth, y=new.data$astero.synth)) +
     geom_point() + 
     geom_abline(slope=1, intercept=0, colour='gray', size=1) +
     geom_abline(slope=fit[1], intercept=fit[2], colour='red', size=1) +
+    geom_abline(slope=fit2[1], intercept=fit2[2], colour='blue', size=1) +
     xlab("synthetic TGAS parallaxes [mas]") + ylab("synthetic seismic parallaxes [mas]") +
-    annotation_custom(grob)
+    annotation_custom(grob) + annotation_custom(grob2)
   print(plot1)
-  return(c(new.data, fit))
+  return(c(new.data, fit))  # 1-index, 2-TGAS.parallaxes, 3-TGAS.errors, 4-astero.parallaxes, 5-astero.errors, 6-fit slope, 7-fit intercept
 }
 
 ### parameters and data loading
@@ -162,9 +176,9 @@ print(hist.intercepts)
 
 ### Plot the data similar to Fig. 4 in J. De Ridder et al (2016) "Asteroseismic versus Gaia distances"
 X1 <- data.frame(TGAS.synth[['X1']], astero.synth[['X1']])
-grob <- grobTree(textGrob(sprintf('Current sample, slope: %s, intercept: %s',round(fit.results[[1]][[1]],3), round(fit.results[[2]][[1]],3)), x=0.01,  y=0.98, hjust=0,
+grob <- grobTree(textGrob(sprintf('Current sample, slope: %s, intercept: %s', round(fit.results[[1]][[1]],3), round(fit.results[[2]][[1]],3)), x=0.01,  y=0.98, hjust=0,
                           gp=gpar(col="black", fontsize=13)))
-grob2 <- grobTree(textGrob(sprintf("Average all samples, slope: %s±%s, intercept: %s±%s", round(average.slope,3), round(error.slope,3), round(average.intercept,3),round(error.intercept,3)), x=0.01, y=0.95, hjust=0, 
+grob2 <- grobTree(textGrob(sprintf("Average all samples, slope: %s±%s, intercept: %s±%s", round(average.slope,3), round(error.slope,3), round(average.intercept,3), round(error.intercept,3)), x=0.01, y=0.95, hjust=0, 
                            gp=gpar(col="blue", fontsize=13)))
 grob3 <- grobTree(textGrob(sprintf("Average all positive values, slope: %s±%s, intercept: %s±%s", round(average.pos.slope,3), round(error.pos.slope,3), round(average.pos.intercept,3), round(error.pos.intercept,3)), x=0.01, y=0.92, hjust=0,
                            gp=gpar(col="red", fontsize=13)))
@@ -185,5 +199,5 @@ print(p2)
 
 cat('TGAS offset:',TGAS.offset,'mas\n')
 cat('Error-in-variable on sample 1:\nslope:', fit.results[[1]][[1]], 'intercept:', fit.results[[2]][[1]],'\n')
-cat('Error-in-variable averaged on whole sample:\nslope:', average.slope,'±',error.slope,'intercept:',average.intercept,'±',error.intercept,'\n')
-cat('Error-in-variable averaged on positive samples:\nslope:', average.pos.slope,'±',error.pos.slope,'intercept:',average.pos.intercept,'±',error.pos.intercept,'\n')
+cat('Error-in-variable averaged on whole sample:\nslope:', average.slope,'±', error.slope,'intercept:', average.intercept, '±', error.intercept,'\n')
+cat('Error-in-variable averaged on positive samples:\nslope:', average.pos.slope, '±', error.pos.slope, 'intercept:', average.pos.intercept, '±', error.pos.intercept, '\n')
